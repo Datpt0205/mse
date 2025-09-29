@@ -1,0 +1,78 @@
+services:
+  # ================= Database & Vector =================
+  qdrant:
+    image: qdrant/qdrant:latest
+    restart: always
+    container_name: ratemate_qdrant
+    networks:
+      - mse-network
+    ports:
+      - "6334:6333"
+    volumes:
+      - ./qdrant_data:/qdrant/storage
+
+  ratemate_pg_dev:
+    image: postgres:latest
+    container_name: ratemate_pg_dev
+    networks:
+      - mse-network
+    restart: always
+    volumes:
+      - ratemate_pg_data_dev:/var/lib/postgresql/data/
+    ports:
+      - "5555:5432"
+    environment:
+      - POSTGRES_DB=ratemate_db_dev
+      - POSTGRES_USER=ratemate_pg_dev
+      - POSTGRES_PASSWORD=ratemate_pg_dev
+
+  # ================= Backend =================
+  backend:
+    build:
+      context: ./server
+      dockerfile: Dockerfile.BE
+    container_name: ratemate_api
+    networks:
+      - mse-network
+    restart: on-failure
+    command: bash -c "alembic upgrade head && python3 -m src.main"
+    ports:
+      - "8686:8686"
+    volumes:
+      - ./server/alembic:/app/alembic
+      - ./server/src:/app/src
+      - ./server/menu_data:/app/menu_data
+    depends_on:
+      - ratemate_pg_dev
+      - qdrant
+    env_file: ./server/.env
+    environment:
+      - PG_HOST=ratemate_pg_dev
+      - PG_PORT=5432
+      - FASTEMBED_CACHE_DIR=/app/cache
+      - HF_HOME=/app/cache
+
+  # ================= Frontend =================
+  web:
+    build:
+      context: ./client
+      dockerfile: Dockerfile.FE
+    container_name: jobrecs-web
+    networks:
+      - mse-network
+    ports:
+      - "3000:3000"
+    environment:
+      - BACKEND_BASE_URL=http://backend:8686
+    depends_on:
+      - backend
+
+# ================= Volumes & Networks =================
+volumes:
+  qdrant_data:
+  ratemate_pg_data_dev:
+
+networks:
+  mse-network:
+    external: true
+    driver: bridge
