@@ -1,0 +1,30 @@
+menu_data/
+qdrant_data/
+
+# Virtual Environment
+.env
+.venv
+env/
+venv/
+ENV/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Project specific
+/data/
+/models/
+/logs/
+*.log
+
+# Docker
+.docker/
+docker-compose.override.yml
+
+# Qdrant specific
+/data/qdrant_data/
+qdrant_data
