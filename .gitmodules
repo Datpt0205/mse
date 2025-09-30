@@ -1,0 +1,9 @@
+[submodule "client"]
+    path = client
+    url = https://github.com/Datpt0205/fe_mse.git
+    branch = main
+
+[submodule "server"]
+    path = server
+    url = https://github.com/Datpt0205/RAG_base.git
+    branch = main
